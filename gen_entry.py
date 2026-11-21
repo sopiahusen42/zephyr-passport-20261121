@@ -204,21 +204,24 @@ def fee_stamp():
     ctext(d, cx, 32, "WIND USE PERMIT", f1, c)
     f2 = fit_font(d, "FEE PAID: 12 GUSTS", 134, 14)
     ctext(d, cx, 58, "FEE PAID: 12 GUSTS", f2, c)
-    f3 = fit_font(d, "SER. 0004831 \u00b7 06 NOV 2026", 134, 12)
-    ctext(d, cx, 78, "SER. 0004831 \u00b7 06 NOV 2026", f3, c)
+    f3 = fit_font(d, "SER. ZP483921 \u00b7 06 NOV 2026", 134, 12)
+    ctext(d, cx, 78, "SER. ZP483921 \u00b7 06 NOV 2026", f3, c)
     speckle_rect(layer, (10, 14, 160, 106), GREEN)
     return layer
 
 
-def arc_text(layer, s, cx, cy, rx, ry, size, fill, a0, a1):
-    """Text along the top arc of an ellipse; a in degrees, 0 = top."""
+def arc_text(layer, s, cx, cy, rx, ry, size, fill, a0, a1, v_inset=12):
+    """Text along the top arc of an ellipse; a in degrees, 0 = top.
+
+    v_inset = distance from the ellipse's top edge to the text baseline arc.
+    """
     f = fnt("DejaVuSans-Bold.ttf", size)
     n = len(s)
     for i, ch in enumerate(s):
         a = a0 + (a1 - a0) * i / max(n - 1, 1)
         rad = math.radians(a)
         px = cx + (rx - 16) * math.sin(rad)
-        py = cy - (ry - 12) * math.cos(rad)
+        py = cy - (ry - v_inset) * math.cos(rad)
         g = Image.new("RGBA", (44, 30), (0, 0, 0, 0))
         gd = ImageDraw.Draw(g)
         gd.text((22 - tsize(gd, ch, f) / 2, 15 - size * 0.7), ch, font=f, fill=fill)
@@ -227,16 +230,16 @@ def arc_text(layer, s, cx, cy, rx, ry, size, fill, a0, a1):
 
 
 def stamp_arrival():
-    layer = Image.new("RGBA", (230, 160), (0, 0, 0, 0))
+    layer = Image.new("RGBA", (230, 190), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     c = BLUE + (255,)
-    cx, cy, rx, ry = 115, 80, 95, 60
+    cx, cy, rx, ry = 115, 95, 95, 72
     d.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), outline=c, width=2)
     d.ellipse((cx - rx + 5, cy - ry + 5, cx + rx - 5, cy + ry - 5), outline=c, width=1)
-    arc_text(layer, "PORT GALE \u2014 ZEPHYR", cx, cy, rx, ry, 13, c, -52, 52)
-    ctext(d, cx, 68, "ARRIVAL", fnt("DejaVuSans-Bold.ttf", 18), c)
-    ctext(d, cx, 94, "VIA FENDRA FERRY", fnt("DejaVuSans.ttf", 9), c)
-    ctext(d, cx, 114, "05 JAN 2027", fnt("DejaVuSans-Bold.ttf", 13), c)
+    arc_text(layer, "PORT GALE \u2014 ZEPHYR", cx, cy, rx, ry, 12, c, -50, 50, 20)
+    ctext(d, cx, 74, "ARRIVAL", fnt("DejaVuSans-Bold.ttf", 18), c)
+    ctext(d, cx, 100, "VIA FENDRA FERRY", fnt("DejaVuSans.ttf", 9), c)
+    ctext(d, cx, 124, "05 JAN 2027", fnt("DejaVuSans-Bold.ttf", 13), c)
     speckle_ellipse(layer, cx, cy, rx, ry, BLUE)
     return layer
 
@@ -376,7 +379,6 @@ def render():
     d.rectangle((58, 240, 300, 470), outline=MAROON, width=2)
     d.rectangle((61, 243, 297, 467), fill=P_BG)
     draw_portrait(img)
-    ctext(d, 179, 478, "PORT OF GALE, ZEPHYR", fnt("DejaVuSans.ttf", 11), LABEL_C)
 
     # data grid
     rows = [
@@ -384,7 +386,7 @@ def render():
         ("GIVEN NAME", "KESTREL A."),
         ("NATIONALITY", "ZEPHYRIC"),
         ("DATE OF BIRTH", "12 MAR 1986"),
-        ("PLACE OF BIRTH", "PORT GALE, Z"),
+        ("PLACE OF BIRTH", "PORT GALE"),
         ("SEX", "F"),
     ]
     # data grid: strict column x=322, 14 px labels, 15 px bold values +7 px,
@@ -414,9 +416,11 @@ def render():
 
     # MRZ: both lines same size, centred, 20 px above the paper's bottom edge
     mrz_lines = [
-        "P<ZPR<ZEPHYR<<KESTREL<<A<<<<<<<<<<<<<<<<<<",
-        "ZP48392148ZPR6103124F3111049<<<<<<<<<<<8",
+        "P<ZPR<ZEPHYR<<KESTRELA<<<<<<<<<<<<<<<<<<<<<<",
+        "ZP483921<58603120ZPR7F3111046<<<<<<<<0<<<<<3",
     ]
+    for line in mrz_lines:
+        assert len(line) == 44
     fm = fnt("DejaVuSansMono-Bold.ttf", 24)
     probe = ImageDraw.Draw(Image.new("RGB", (8, 8)))
     scale = 0.52
